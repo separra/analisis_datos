@@ -349,7 +349,7 @@ El digarama de cuantiles `qqplot`es una figura para un diagnóstico rápido que 
 
 ## Propiedades de los frutos de ají en fresco
 
-Los frutos de Capsicum fueron evaluados en fresco, antes de someter las muestras al proceso de conservación con ácido acético.
+Los frutos de Capsicum fueron evaluados en fresco, antes de someter las muestras al proceso de conservación con ácido acético. Las variables evaluadas fueron el pH, los grados brix y el porcentaje de humedad. Incialmente, los datos en fresco de los frutos de ají fueron obtenidos filtrando desde la base de datos original, aquellos evaluados en el tiempo T0. Esto se realizó usando la función `filter()` de la librería `dplyr`.
 
 ```{r}
 #| label: Figura caracteristicas quimicas
@@ -360,90 +360,80 @@ Los frutos de Capsicum fueron evaluados en fresco, antes de someter las muestras
 #| fig-width: 6
 #| fig-height: 6
 #| code-fold: true
-f7 <- ggplot(proms.cauca, aes(y=reorder(acce, hum_mean, mean), 
-                              x=hum_mean)) + 
-  geom_bar(position = position_dodge(), stat = "identity", 
-           width = 0.5, colour = "black", fill="steelblue3") +
-  geom_errorbar (aes(xmin=hum_mean-hum_se, 
-                     xmax=hum_mean+hum_se), 
-                 position = position_dodge (0.1), 
+
+tiempo.0 <- filter (vida.util, tiempo=="T0")
+
+
+## caracteristicas a tiempo 0
+tiempo.0 <- tiempo.0[complete.cases(tiempo.0),]
+
+proms.tiempo <- tiempo.0 [-c(2)] %>% 
+  group_by (acce) %>%
+  summarise_all (list(mean=mean, sd=sd))
+
+f7 <- ggplot(proms.tiempo, aes(x=acce, y=ph_mean,
+                       fill=acce)) +
+  geom_bar(position = position_dodge(), stat = "identity",
+           width = 0.8, colour = "black") +
+  geom_errorbar (aes(ymin=ph_mean-ph_sd,
+                     ymax=ph_mean+ph_sd),
+                 position = position_dodge (0.8),
                  linetype ="solid", colour="black",
                  size=0.3, width=0.5) +
-  geom_vline(xintercept=83.85, linetype="dashed", color = "black") +
-  theme_bw() + 
-  xlab (expression(paste('% humedad'))) + 
-  ylab (expression(paste(''))) +
-  theme (axis.title = element_text (size=10), 
-         axis.text = element_text(size=10), 
-         panel.grid.major.x=element_blank(),
-         panel.grid.minor.x=element_blank(),
-         legend.position="none")
-f8 <- ggplot(proms.cauca, aes(y=reorder(acce, brix_mean, mean), 
-                              x=brix_mean)) + 
-  geom_bar(position = position_dodge(), stat = "identity", 
-           width = 0.5, colour = "black", fill="steelblue3") +
-  geom_errorbar (aes(xmin=brix_mean-brix_se, 
-                     xmax=brix_mean+brix_se), 
-                 position = position_dodge (0.1), 
-                 linetype ="solid", colour="black",
-                 size=0.3, width=0.5) +
-  geom_vline(xintercept=8.23, linetype="dashed", color = "black") +
-  theme_bw() + 
-  xlab (expression(paste('Brix°'))) + 
-  ylab (expression(paste(''))) +
-  theme (axis.title = element_text (size=10), 
-         axis.text = element_text(size=10), 
+  scale_fill_brewer (name="Tiempo", palette="YlOrRd") +
+  theme_bw() +
+  ylab (expression(paste('pH'))) +
+  xlab (expression(paste('Accesion'))) +
+  theme (axis.title = element_text (size=11),
+         axis.text = element_text(size=11),
+         axis.text.x = element_text(size=10, angle=0),
          panel.grid.major.x=element_blank(),
          panel.grid.minor.x=element_blank(),
          legend.position="none")
 
-f9 <- ggplot(proms.cauca, aes(y=reorder(acce, ph_mean, mean), 
-                              x=ph_mean)) + 
-  geom_bar(position = position_dodge(), stat = "identity", 
-           width = 0.5, colour = "black", fill="steelblue3") +
-  geom_errorbar (aes(xmin=ph_mean-ph_se, 
-                     xmax=ph_mean+ph_se), 
-                 position = position_dodge (0.1), 
+f8 <- ggplot(proms.tiempo, aes(x=acce, y=brix_mean,
+                         fill=acce)) +
+  geom_bar(position = position_dodge(), stat = "identity",
+           width = 0.8, colour = "black") +
+  geom_errorbar (aes(ymin=brix_mean-brix_sd,
+                     ymax=brix_mean+brix_sd),
+                 position = position_dodge (0.8),
                  linetype ="solid", colour="black",
                  size=0.3, width=0.5) +
-  geom_vline(xintercept=5.47, linetype="dashed", color = "black") +
-  theme_bw() + 
-  xlab (expression(paste('pH'))) + 
-  ylab (expression(paste(''))) +
-  theme (axis.title = element_text (size=10), 
-         axis.text = element_text(size=10), 
+  scale_fill_brewer (name="Tiempo", palette="YlOrRd") +
+  theme_bw() +
+  ylab (expression(paste('°Brix'))) +
+  xlab (expression(paste('Accesion'))) +
+  theme (axis.title = element_text (size=11),
+         axis.text = element_text(size=11),
+         axis.text.x = element_text(size=10, angle=0),
          panel.grid.major.x=element_blank(),
          panel.grid.minor.x=element_blank(),
          legend.position="none")
 
-grid.arrange(f7,f8,f9, ncol=3)
+f9 <- ggplot(proms.tiempo, aes(x=acce, y=hum_mean,
+                         fill=acce)) +
+  geom_bar(position = position_dodge(), stat = "identity",
+           width = 0.8, colour = "black") +
+  geom_errorbar (aes(ymin=hum_mean-hum_sd,
+                     ymax=hum_mean+hum_sd),
+                 position = position_dodge (0.8),
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  scale_fill_brewer (name="Tiempo", palette="YlOrRd") +
+  theme_bw() +
+  ylab (expression(paste('Humedad'~("%")))) +
+  xlab (expression(paste('Accesion'))) +
+  theme (axis.title = element_text (size=11),
+         axis.text = element_text(size=11),
+         axis.text.x = element_text(size=10, angle=0),
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+grid.arrange(f7,f8,f9, nrow=1)
 
 ```
-
-# Compración de la concentración de provitamina A por especie
-
-El sigiente análisis combina estadística descriptiva e inferencial y busca compara el efecto de uno de los factores, en este caso la especie sobre la variable numérica contenido de provitamina A. Para ello se utilizó la librería `ggstatsplot`, la cual muestra los resultados en un diagrama de violin en el cual se observa la dispersión, variación y tendencia central de las mediciones realizadas.
-
-```{r}
-#| label: Figura características químicas
-#| warning: false 
-#| message: false
-#| fig-cap: Figura 3. Comparación entre especies 
-#| fig-align: 'center'
-#| code-fold: true
-ggbetweenstats(
-  data  = caro.cauca,
-  x     = espe,
-  y     = provitA, 
-  type = "parametric",
-  p.adjust.method = "bonferroni", 
-  conf.level = 0.95,
-  xlab = "Especie",
-  ylab = (expression(paste('Provitamina A'~(mg~x~100~g^-1)))),
-)
-```
-
-Empleando la información presentada por la figura, se puede determinar que las accesiones pertenecientes a la especie *C.* *annuum* presentan mayor concentración de provitamina A en los frutos. Sin embargo, también hay mayor variación entre las accesiones de esta especie. Cuando se comparan las especies se puede determinar que hay diferencias significativas entre las cuatro especies comparadas.
 
 # Conclusión
 
