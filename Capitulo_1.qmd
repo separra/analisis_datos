@@ -18,11 +18,11 @@ fig-cap-location: bottom
 
 # Introducción a los datos empleados
 
-Este documento contiene los resultados del experimento realizado con tres accesiones de *Capsicum spp.* crecidas en el muncipio de Palmira, departamento del Valle del Cauca, Colombia. En el cual se evaluaron las características físicas y químicas de los frutos obtenidos, empleando diferentes parámetros.
+Este documento contiene los resultados del experimento realizado con tres accesiones de *Capsicum spp.* crecidas en el muncipio de Palmira, departamento del Valle del Cauca, Colombia. En el cual se evaluaron las características físicas y químicas de los frutos obtenidos y almacenadas por varios días bajo un método de conservación con ácido acético.
 
 En este capítulo se busca acercar a estudiantes, profesores e interesados en el análisis de datos agronómicos empleando métodos descriptivos e inferenciales utilizando el software R.
 
-Se presentan, paso a paso, los métodos para los análisis realizados y las interpretaciones de los resultados obtenidos. De esta forma se busca que el lector pueda comprender y aplicar métodos de **estadística descriptiva e inferencial**
+Se presentan, paso a paso, los métodos para los análisis realizados y las interpretaciones de los resultados obtenidos. De esta forma se busca que el lector pueda comprender y aplicar métodos de **estadística descriptiva e inferencial**. Los métodos aplicados buscan determinar el efecto de los tratamientos de conservación con ácido acético en las características físicas y químicas de los frutos de ají. 
 
 ::: callout-note
 **Estadística descriptiva:** hace referencia a los métodos estad´siticos empleados para describir la distribución, tendencia central y variación de un conjunto de datos, empleando diferentes estadísticos.
@@ -58,7 +58,9 @@ library ("DT")
 
 # Cargar base de datos
 
-Para iniciar con el análisis, es necesario cargar la información contenida en la base de datos. Generalmente los datos se almacenan en archivos .txt, .csv o de Excel. En este capítulo, los datos usados corresponden a las características físicas y químicas de los frutos obtenidos de las accesiones de Capsicum. En el análisis se emplearon cinco repteiciones por cada accesoión. La base de datos que se presenta a continuación contiene todas las observaciones de las variables medidas. Para cargar el archivo con los datos se emplea la función `read.delim()`, la cual permite cargar un archivo delimitado por tabulaciones.
+Para iniciar con el análisis, es necesario cargar la información contenida en la base de datos. Generalmente los datos se almacenan en archivos .txt, .csv o de Excel. En este capítulo, los datos usados corresponden a las características físicas y químicas de los frutos obtenidos de las accesiones de Capsicum. En el análisis se emplearon tres repticiones por cada tratamiento. Los tratamientos corresponden a la combinación entre las diferentes accesiones de ají y los días de conservación de las muestras.  
+
+La base de datos que se presenta a continuación contiene todas las observaciones de las variables medidas. Para cargar el archivo con los datos se emplea la función `read.delim()`, la cual permite cargar un archivo delimitado por tabulaciones.
 
 La función `datatable()` permite generar una tabla a partir de un objeto creado. En este caso se presentan las primeras observaciones de la abse de datos empleada en el análisis.
 
@@ -86,22 +88,25 @@ Las demás columnas presentes en la base de datos corresponden a variables numé
 #| message: false
 #| output: false
 #| code-fold: true
-caro.cauca$acce <- as.factor (caro.cauca$acce)
-caro.cauca$espe <- as.factor (caro.cauca$espe)
-caro.cauca$acar <- as.numeric (caro.cauca$acar)
-caro.cauca$bcar <- as.numeric (caro.cauca$bcar)
-caro.cauca$zea <- as.numeric (caro.cauca$zea)
-caro.cauca$bcrip <- as.numeric (caro.cauca$bcrip)
-caro.cauca$lico <- as.numeric (caro.cauca$lico)
-caro.cauca$provitA <- as.numeric (caro.cauca$provitA)
-caro.cauca$brix <- as.numeric (caro.cauca$brix)
-caro.cauca$ph <- as.numeric (caro.cauca$ph)
-caro.cauca$hum <- as.numeric (caro.cauca$hum)
-caro.cauca$L <- as.numeric (caro.cauca$L)
-caro.cauca$a <- as.numeric (caro.cauca$a)
-caro.cauca$b <- as.numeric (caro.cauca$b)
-caro.cauca$C <- as.numeric (caro.cauca$C)
-caro.cauca$h <- as.numeric (caro.cauca$h)
+str (vida.util)
+names (vida.util)
+vida.util$acce <- as.factor (vida.util$acce)
+vida.util$tiempo <- as.factor (vida.util$tiempo)
+
+vida.util$acar <- as.numeric (vida.util$acar)
+vida.util$bcar <- as.numeric (vida.util$bcar)
+vida.util$zea <- as.numeric (vida.util$zea)
+vida.util$bcrip <- as.numeric (vida.util$bcrip)
+vida.util$lico <- as.numeric (vida.util$lico)
+vida.util$provitA <- as.numeric (vida.util$provitA)
+vida.util$brix <- as.numeric (vida.util$brix)
+vida.util$ph <- as.numeric (vida.util$ph)
+vida.util$hum <- as.numeric (vida.util$hum)
+vida.util$L <- as.numeric (vida.util$L)
+vida.util$a <- as.numeric (vida.util$a)
+vida.util$b <- as.numeric (vida.util$b)
+vida.util$C <- as.numeric (vida.util$C)
+vida.util$h <- as.numeric (vida.util$h)
 ```
 
 # Aplicación de análisis descriptivo
@@ -127,21 +132,31 @@ El primer paso en el análisis de la información es la aplicación de estadíst
 
 ## Cálculo del promedio y desviación estándar.
 
-Para el cálculo de los promedios se empleó la función `smmarise_all ()`. Previamente el conjunto de datos se agrupó de acuerdo con las accesiones evaluadas empleando la función `group_by()`
+Para el cálculo de los promedios se empleó la función `summarySE`, la cual permite calcular diferentes estadísticos descriptivos, agrupando por los factores del experimento planteado. En este caso se agrupó por accesiones y tiempo de conservación en ácido acético.
 
 ```{r}
-#| label: Cálculo de promedios por accesión
+#| label: Cálculo de promedios por tratamiento
 #| warning: false 
 #| message: false
-#| tbl-cap: Tabla 1. Promedios por accesión
 #| code-fold: true
-proms.cauca <- caro.cauca %>% group_by (acce, espe) %>% 
-  summarise_all(funs(mean(.), se=sd(.)/sqrt(n())))
 
-datatable(proms.cauca, rownames=FALSE, class = 'cell-border stripe')
+source ("Function se.R")
+
+se.acar <- summarySE (vida.util, measurevar = "acar",
+                      groupvars = c("acce", "tiempo"), na.rm = TRUE)
+se.bcar <- summarySE (vida.util, measurevar = "bcar",
+                      groupvars = c("acce", "tiempo"), na.rm = TRUE)
+se.zea <- summarySE (vida.util, measurevar = "zea",
+                     groupvars = c("acce", "tiempo"), na.rm = TRUE)
+se.bcrip <- summarySE (vida.util, measurevar = "bcrip",
+                       groupvars = c("acce", "tiempo"), na.rm = TRUE)
+se.lico <- summarySE (vida.util, measurevar = "lico",
+                      groupvars = c("acce", "tiempo"), na.rm = TRUE)
+se.provita <- summarySE (vida.util, measurevar = "provitA",
+                         groupvars = c("acce", "tiempo"), na.rm = TRUE)
 ```
 
-La tabla presenta los promedios y desviación estandar para las variables numéricas evaluadas agrupando las observaciones por las accesiones. Estos valores serán empleados para la elaboración de las figuras que componen el análisis.
+Empleando esta función se generan objetos en los cuales se calculan el promedio, la desviación estandar (sd), el error estandar (se) y el íntervalo de confianza en los tratamientos (ci). Estos estadísticos muestran la tendencia central y la variación del conjunto de datos obtenidos.
 
 ## Contenido de carotenoides en los frutos de *Capsicum* spp
 
