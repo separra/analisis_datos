@@ -1,27 +1,540 @@
 ---
-title: "Análisis de Datos"
+title: "Introducción al análisis de datos"
+subtitle: "Evalución de las características físicas y químicas de diferentes accesiones de ají (*Capsicum spp*)"
 author: "Sebastian Parra-Londono"
-format: html
-editor: visual
+affiliation: "Programas agrícolas UTEDE"
+format: 
+  html: 
+    theme: cerulean
+    code-tools: true
+toc: true
+toc-depth: 3 
+toc-location: right
+toc-title: Contenidos
+lang: "es"
+tbl-cap-location: top
+fig-cap-location: bottom
 ---
 
-## Quarto
+# Introducción a los datos empleados
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+Este documento contiene los resultados del experimento realizado con tres accesiones de *Capsicum spp.* crecidas en el muncipio de Palmira, departamento del Valle del Cauca, Colombia. En el cual se evaluaron las características físicas y químicas de los frutos obtenidos, empleando diferentes parámetros.
 
-## Running Code
+En este capítulo se busca acercar a estudiantes, profesores e interesados en el análisis de datos agronómicos empleando métodos descriptivos e inferenciales utilizando el software R.
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+Se presentan, paso a paso, los métodos para los análisis realizados y las interpretaciones de los resultados obtenidos. De esta forma se busca que el lector pueda comprender y aplicar métodos de **estadística descriptiva e inferencial**
+
+::: callout-note
+**Estadística descriptiva:** hace referencia a los métodos estad´siticos empleados para describir la distribución, tendencia central y variación de un conjunto de datos, empleando diferentes estadísticos.
+:::
+
+# Cargar librerías
+
+El primer paso consiste en cargar las librerías o paquetes que se desean emplear en los análisis al entorno de trabajo de R. Para ello se usa la función `library()`. Las librerías deben ser cargadas en el entorno de trabajo **cada vez** que se inicia una sesión de trabajo. Los paquetes contienen funciones específicas para realizar los análisis deseados.
 
 ```{r}
-1 + 1
+#| label: Cargar librerias de R
+#| warning: false
+#| message: false 
+#| output: false
+#| code-fold: true
+library ("Hmisc")
+library ("dplyr")
+library ("reshape2")
+library("ggplot2")
+library ("RColorBrewer")
+library("tidyr")
+library("grid") 
+library("gridExtra")
+library("scales")
+library("ggridges")
+library ("car")
+library("agricolae")
+library("plotly")
+library("viridis")
+library ("DT")
+
 ```
 
-You can add options to executable code like this
+# Cargar base de datos
+
+Para iniciar con el análisis, es necesario cargar la información contenida en la base de datos. Generalmente los datos se almacenan en archivos .txt, .csv o de Excel. En este capítulo, los datos usados corresponden a las características físicas y químicas de los frutos obtenidos de las accesiones de Capsicum. En el análisis se emplearon cinco repteiciones por cada accesoión. La base de datos que se presenta a continuación contiene todas las observaciones de las variables medidas. Para cargar el archivo con los datos se emplea la función `read.delim()`, la cual permite cargar un archivo delimitado por tabulaciones.
+
+La función `datatable()` permite generar una tabla a partir de un objeto creado. En este caso se presentan las primeras observaciones de la abse de datos empleada en el análisis.
 
 ```{r}
-#| echo: false
-2 * 2
+#| label: Cargar datos a la plataforma R
+#| warning: false 
+#| message: false
+#| code-fold: true
+vida.util <- read.delim("vida_util.txt", dec=",")
+datatable(head(vida.util), rownames=FALSE)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+# Asiganción de factores y variables numéricas.
+
+A continuación, se asignan los factores y variables numéricas al conjunto de datos para evitar errores en los análisis posteriores. Este paso facilita la aplicación de las pruebas estadísticas y la presentación de los resultados en figuras.Los factores de esta base de datos son dos:
+
+-   Nombre de las accesiones (columna acce).
+-   Especie (columna espe).
+
+Las demás columnas presentes en la base de datos corresponden a variables numéricas medidas.
+
+```{r}
+#| label: Asignar factores y variables numericas a las columnas
+#| warning: false 
+#| message: false
+#| output: false
+#| code-fold: true
+caro.cauca$acce <- as.factor (caro.cauca$acce)
+caro.cauca$espe <- as.factor (caro.cauca$espe)
+caro.cauca$acar <- as.numeric (caro.cauca$acar)
+caro.cauca$bcar <- as.numeric (caro.cauca$bcar)
+caro.cauca$zea <- as.numeric (caro.cauca$zea)
+caro.cauca$bcrip <- as.numeric (caro.cauca$bcrip)
+caro.cauca$lico <- as.numeric (caro.cauca$lico)
+caro.cauca$provitA <- as.numeric (caro.cauca$provitA)
+caro.cauca$brix <- as.numeric (caro.cauca$brix)
+caro.cauca$ph <- as.numeric (caro.cauca$ph)
+caro.cauca$hum <- as.numeric (caro.cauca$hum)
+caro.cauca$L <- as.numeric (caro.cauca$L)
+caro.cauca$a <- as.numeric (caro.cauca$a)
+caro.cauca$b <- as.numeric (caro.cauca$b)
+caro.cauca$C <- as.numeric (caro.cauca$C)
+caro.cauca$h <- as.numeric (caro.cauca$h)
+```
+
+# Aplicación de análisis descriptivo
+
+El primer paso en el análisis de la información es la aplicación de estadísticos para la descripción de los datos obtenidos, en este caso a partir de los frutos de Capsicum. Estos estadísticos determinan la tendencia central y la dispersión de los valores medidos. La librería `dplyr` contiene funciones para calcular los estadísticos deseados. A continuación se presenta el promedio y la desviación estandar obtenidas para las variables numéricas evaluadas. Estas variables fueron:
+
+-   Características químicas:
+    -   Grados Brix
+    -   Porcentaje de humedad
+    -   pH
+-   Concentración de carotenoides
+    -   Alfa caroteno
+    -   Beta caroteno
+    -   Zexantina
+    -   Beta criptoxantina
+    -   Licopeno
+-   Color en escala CIELAB
+    -   L\*
+    -   a\*
+    -   b\*
+    -   C
+    -   h
+
+## Cálculo del promedio y desviación estándar.
+
+Para el cálculo de los promedios se empleó la función `smmarise_all ()`. Previamente el conjunto de datos se agrupó de acuerdo con las accesiones evaluadas empleando la función `group_by()`
+
+```{r}
+#| label: Cálculo de promedios por accesión
+#| warning: false 
+#| message: false
+#| tbl-cap: Tabla 1. Promedios por accesión
+#| code-fold: true
+proms.cauca <- caro.cauca %>% group_by (acce, espe) %>% 
+  summarise_all(funs(mean(.), se=sd(.)/sqrt(n())))
+
+datatable(proms.cauca, rownames=FALSE, class = 'cell-border stripe')
+```
+
+La tabla presenta los promedios y desviación estandar para las variables numéricas evaluadas agrupando las observaciones por las accesiones. Estos valores serán empleados para la elaboración de las figuras que componen el análisis.
+
+## Contenido de carotenoides en los frutos de *Capsicum* spp
+
+Se presentan los promedios y desviación estándar de los contenidos de carotenoides en los frutos de Capsicum. Se muestra la concentración en mg por cada 100 g de fruto fresco. Para la elaboración de las figuras se emplean los valores obtenidos al calcular el promedio y la desviación estándar. La librería usada para la elaboración de las figuras fue `ggplot2 ()`, las cuales fueron creadas inicialmente como objeto y organizadas con la función `grid.arrange()`.
+
+```{r}
+#| label: Figura carotenoides
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 1. Concentración de carotenoides 
+#| fig-align: 'center'
+#| fig-width: 5
+#| fig-height: 10
+#| code-fold: true
+f1 <- ggplot(proms.cauca, aes(y=reorder(acce, acar_mean, mean), 
+                        x=acar_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=acar_mean-acar_se, 
+                     xmax=acar_mean+acar_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=10.95, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste(alpha~'caroteno'~(mg~x~100~g^-1)))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+f2 <- ggplot(proms.cauca, aes(y=reorder(acce, bcar_mean, mean), 
+                        x=bcar_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=bcar_mean-bcar_se, 
+                     xmax=bcar_mean+bcar_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=12.47, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste(beta~'caroteno'~(mg~x~100~g^-1)))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+f3 <- ggplot(proms.cauca, aes(y=reorder(acce, zea_mean, mean), 
+                        x=zea_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=zea_mean-zea_se, 
+                     xmax=zea_mean+zea_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=12.98, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste('Zeaxantina'~(mg~x~100~g^-1)))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+f4 <- ggplot(proms.cauca, aes(y=reorder(acce, bcrip_mean, mean), 
+                        x=bcrip_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=bcrip_mean-bcrip_se, 
+                     xmax=bcrip_mean+bcrip_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=13.08, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste(beta~'criptoxantina'~(mg~x~100~g^-1)))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+f5 <- ggplot(proms.cauca, aes(y=reorder(acce, lico_mean, mean), 
+                        x=lico_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=lico_mean-lico_se, 
+                     xmax=lico_mean+lico_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=9.13, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste('licopeno'~(mg~x~100~g^-1)))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+f6 <- ggplot(proms.cauca, aes(y=reorder(acce, provitA_mean, mean), 
+                        x=provitA_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=provitA_mean-provitA_se, 
+                     xmax=provitA_mean+provitA_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=20.63, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste('Provitamina A'~(mg~x~100~g^-1)))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+grid.arrange(f1,f2,f3,f4,f5,f6, ncol=3)
+
+```
+
+La altura de cada una de las barras muestra los valores promedios obtenidos por accesion. Estas se comparan con el valor promedio general obtenido para todas las accesiones (línea punteada). La variación de las observaciones se grafica con cada una de las alturas de las líneas sobre las barras. En términos generales la variación de las observaciones fue poca. Esta figura permite evaluar el comportamiento de las variables númericas, contenido de carotenoides, entre las accesiones, permitiendo su comparación.
+
+## Propiedades químicas de los frutos de Capsicum
+
+Se presentan los promedios y desviación estándar de las variables porcentaje de humedad, grados brix y pH, calculadas para cada una de las accesiones evaluadas.
+
+```{r}
+#| label: Figura caracteristicas quimicas
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 2. Otras caracteristicas quimicas
+#| fig-align: 'center'
+#| fig-width: 6
+#| fig-height: 6
+#| code-fold: true
+f7 <- ggplot(proms.cauca, aes(y=reorder(acce, hum_mean, mean), 
+                              x=hum_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=hum_mean-hum_se, 
+                     xmax=hum_mean+hum_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=83.85, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste('% humedad'))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+f8 <- ggplot(proms.cauca, aes(y=reorder(acce, brix_mean, mean), 
+                              x=brix_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=brix_mean-brix_se, 
+                     xmax=brix_mean+brix_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=8.23, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste('Brix°'))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+f9 <- ggplot(proms.cauca, aes(y=reorder(acce, ph_mean, mean), 
+                              x=ph_mean)) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           width = 0.5, colour = "black", fill="steelblue3") +
+  geom_errorbar (aes(xmin=ph_mean-ph_se, 
+                     xmax=ph_mean+ph_se), 
+                 position = position_dodge (0.1), 
+                 linetype ="solid", colour="black",
+                 size=0.3, width=0.5) +
+  geom_vline(xintercept=5.47, linetype="dashed", color = "black") +
+  theme_bw() + 
+  xlab (expression(paste('pH'))) + 
+  ylab (expression(paste(''))) +
+  theme (axis.title = element_text (size=10), 
+         axis.text = element_text(size=10), 
+         panel.grid.major.x=element_blank(),
+         panel.grid.minor.x=element_blank(),
+         legend.position="none")
+
+grid.arrange(f7,f8,f9, ncol=3)
+
+```
+
+La interpretación de la figura es similar a la del anterior. Es decir la altura de las barras, indica el promedio obtenido, mientras la longitud de las líneas sobre esta la variación entre las mediciones para cada accesión.
+
+# Compración de la concentración de provitamina A por especie
+
+El sigiente análisis combina estadística descriptiva e inferencial y busca compara el efecto de uno de los factores, en este caso la especie sobre la variable numérica contenido de provitamina A. Para ello se utilizó la librería `ggstatsplot`, la cual muestra los resultados en un diagrama de violin en el cual se observa la dispersión, variación y tendencia central de las mediciones realizadas.
+
+```{r}
+#| label: Figura características químicas
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 3. Comparación entre especies 
+#| fig-align: 'center'
+#| code-fold: true
+ggbetweenstats(
+  data  = caro.cauca,
+  x     = espe,
+  y     = provitA, 
+  type = "parametric",
+  p.adjust.method = "bonferroni", 
+  conf.level = 0.95,
+  xlab = "Especie",
+  ylab = (expression(paste('Provitamina A'~(mg~x~100~g^-1)))),
+)
+```
+
+Empleando la información presentada por la figura, se puede determinar que las accesiones pertenecientes a la especie *C.* *annuum* presentan mayor concentración de provitamina A en los frutos. Sin embargo, también hay mayor variación entre las accesiones de esta especie. Cuando se comparan las especies se puede determinar que hay diferencias significativas entre las cuatro especies comparadas.
+
+# Clasificación de las accesiones empleando estadística multivariada
+
+Las metodologías de estadística multivariada permiten evaluar dos o más variables al tiempo e identificar el impacto de estas sobre un grupo de observaciones. Con los valores obtenidos para las variables anteriormete descritas, se elaboró un análisis de componentes principales (PCA) y análisis de cluster para clasificar las accesiones de *Capsicum spp* según las características físicas y químicas de los frutos.
+
+Para este análisis solo se pueden emplear las accesiones con la totalidad de las variables numéricas medidas, es decir que se debe eliminar aquellas donde no se haya obtenido algún valor para las variables numéricas. La función `complete.cases()` identifica en un objeto determinado aquellas variables donde no se ha desiganado valor alguno (NA) y remuve estas observaciones del conjunto de datos a analizar.
+
+```{r}
+#| warning: false 
+#| message: false
+#| output: false
+#| code-fold: true
+caro.cauca <- caro.cauca[complete.cases(caro.cauca),]
+caro.cauca
+```
+
+## Normalizar los datos
+
+Para la categorización de los genotipos empleando el PCA y el análisis de clusters, se utilizaron los promedios obtenidos para cada accesión. El siguiente paso consiste en la normalización de los valores obtenidos. Esto se realiza debido a que las variables evaluadas tienen diferentes escalas de medición, por tanto todas ellas deben serllevadas a una misma escala. La estandarización de los valores se realizó con la función `scale()`.
+
+::: callout-note
+con la función `scale()` se calculó el z-score, el cual transforma los datos observados en la desviación estándar de acuerdo con el pormedio general de la variable evaluada.
+:::
+
+```{r}
+#| warning: false 
+#| code-fold: true
+caro.cauca <- caro.cauca %>% group_by (acce) 
+
+proms <- summarise_all(caro.cauca, funs(mean(.,na.rm = TRUE)))
+acce <-proms[,1]
+proms.n<-as.data.frame(scale(proms [-c(1,2,3)]))
+```
+
+Empleando esta función se obtuvieron los valores estandarizados de las variables numéricas evaluadas, con los cuales se creo un nuevo objeto que se uso para el agrupamiento de las accesisones a través del cálculo de los componentes principales y clusters.
+
+El **PCA** se realizó empleando la función `prcomp()`. Este análisis emplea los datos de todas las variables numéricas evaluadas para el cálculo de componentes principlaes (PC), los cuales no se encuentran relacionados, reducen el número de dimensiones y explican la variabilidad de las observaciones obtenidas. 
+
+```{r}
+#| label: componentes principales
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 4. Biplot de PCA
+#| fig-align: 'center' 
+#| code-fold: true
+pca.caro.2 <- prcomp (proms.n, scale = F, 
+                      center=F)
+biplot(pca.caro.2, xlab=PC1~(0.51), ylab=PC2~(0.20), 
+       col=c("black", "red3"), cex=0.6, pch=16)
+
+abline(v=0, h=0)
+summary(pca.caro.2)
+eizscore.pca.caro.2 <- pca.caro.2$sd^2
+eizscore.pca.caro.2
+pcscores.pca.caro.2 = as.data.frame(pca.caro.2$x)
+eiged <- as.data.frame(pca.caro.2$rotation)
+var<-get_pca_var(pca.caro.2)
+pc1 <-fviz_contrib(pca.caro.2, "var", axes=1, xtickslab.rt=90)
+pc2 <-fviz_contrib(pca.caro.2, "var", axes=2, xtickslab.rt=90)
+pc3 <-fviz_contrib(pca.caro.2, "var", axes=3, xtickslab.rt=90)
+```
+
+La función `biplot()` permite elaborar un diagrama de dispersión empleando los PC 1 y 2 y la distrubución de las observaciones de acuerdo con la variación entre ellos. También en forma de vectores (flechas) se puede observar el comportamiento de las variables numéricas evaluadas, identificando su contribución sobre cada PC y las observaciones realizadas, en esta caso para las accesiones de _Capsicum spp._.   
+
+Entre los resultados obtenidos en el PCA, también se encuentra la variación explicada por cada PC. El primer PC explica la mayora variación de los datos.  
+
+```{r}
+#| label: PC1
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 5. Contribución de las variables al PC1
+#| fig-align: 'center' 
+#| code-fold: true
+plot (pc1, main = "Contribucion PC1")
+```
+
+Esta figura muestra la contribución de cada una de las variables numéricas sobre el componente principal 1. Para el caso analizado, el contenido de beta-caroteno y provitamina A son los de mayor contribución. 
+
+```{r}
+#| label: PC2
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 6. Contribución de las variables al PC2
+#| fig-align: 'center' 
+#| code-fold: true
+plot (pc2, main= "Contribucion PC2")
+```
+
+Esta figura muestra la contribución de cada una de las variables numéricas sobre el componente principal 2. Para el caso analizado, los valores del color CIELAB, especialmente L* y b*, son los de mayor contribución.
+
+## Agrupacioón por clusters
+
+La agrupación o generación de clusters por el método de K-means es uno de los métodos más empleados en machine learning. Este método divide un conjunto de datos en grupos similares en función de la distancia entre sus **centroides**
+
+::: callout-note
+El **centroide** o centro del cluster es la media o la mediana de todos los puntos dentro del cluster.
+:::
+
+Para el cálculo de los agrupamientos, se emplearon los valores obtenidos en el PCA y a partir de ellos se determinó el valor de clusters óptimo para el conjunto de datos utilizado. 
+
+Estos análisis fueron elaborados empleando las librerías `FactoMineR` y `factoextra`
+
+```{r}
+#| label:  Clusters
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 7. Agrupamiento de las accesiones segun el PCA
+#| fig-align: 'center' 
+#| code-fold: true
+cluster <- prcomp (proms.n, scale = F, 
+                   center=F)
+results <- cluster$x
+fviz_nbclust(results, FUNcluster=kmeans, k.max = 8) 
+
+# Hierarchical clustering complete
+library ("ape")
+dm<-dist(results) 
+hc<-hclust(dm, method="complete") # simple dendrogram
+groupsh <- cutree(hc, k=3)
+
+bip <- fviz_pca_biplot(cluster, repel = T, habillage = groupsh, 
+                col.var="grey20", 
+                label="var",
+                geom.ind="point", 
+                title="")
+                
+bip + scale_color_manual(values = c("#006600","#0066CC","#FF0000")) +
+  theme_bw() + theme(legend.position = "none") +
+  xlim(-5, 12) + ylim(-6, 6)
+
+```
+
+El diagrama de dispersión muestra el agrupamiento de las accesiones de acuerdo con el resultado del método k-means. Se determinaron tres grupos diferentes considerando la variación en las característica físicas y químicas de los frutos de ají. La característica más determinante en el cluster rojo, accesión 36, es el elevados contenido de carotenoides, mientras en el cluster azul se agrupan accesiones con valor alto de a* y humedad. Las del grupo verde presentan valores elevados de b* y pH. 
+
+```{r}
+#| label:  Dendrograma
+#| warning: false 
+#| message: false
+#| fig-cap: Figura 8. Dendrograma clasificación de las accesiones
+#| fig-align: 'center' 
+#| code-fold: true
+dend <- as.dendrogram(hc)
+acce$acce[hc$order]
+par(mar=c(4,1,1,1))
+dend %>% set("labels_cex", 0.8) %>%
+  set("labels_col", value = c("red2", "forestgreen", "dodgerblue"), k=3)%>% 
+  set("labels", c( "36","54","60","182","88","216","130",
+                   "61","260","113","168","87","198","29",
+                   "12","129","24","209","Rocoto","44","Habanero",
+                   "139","149","267","257", "63","261","57",
+                   "Cayena","195","52")) %>% 
+  set("branches_k_color", value = c("red2", "forestgreen", "dodgerblue"), k = 3) %>%
+  plot(horiz=F, axes=FALSE)
+```
+
+El dendrograma presentado muestra el agrupamiento de las accesiones de acuerdo con las distancias entre los centroides de los clusters. La proximidad entre las accesiones indican mayor o menor similitud entre estas. Las accesiones que comparten el color pertenecen a un mismo cluster, indicando similitud en las características físicas y químicas de los frutos. 
+
+Estos análisis y el dendrograma fueron realizados empleando la librería `ape`. 
+
+# Conclusión
+
+Con los métodos empleados en estadística univariada se logró evaluar el comportamiento de las variables físicas y químicas de los frutos de Capsicum de acuerdo con las accesiones seleccionadas, identificando cuales presentan mayores valores para cada variable individual y variación entre los valores observados. Por otra parte, empleando la metodología multivariada PCA se logró identificar grupos de accesiones de capsicum que comparten similitudes en las características físicas y químicas de los frutos obtenidos.   
+
