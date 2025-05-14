@@ -306,7 +306,7 @@ La altura de cada una de las barras muestra los valores promedios obtenidos por 
 
 ## Aplicación de estadística inferencial
 
-Antes de la aplicación de la estadísitica inferencial, es necesario corrobar el la distribución de cada una de las variables numéricas, esto con el objetivo de visualizar su comportamiento y por tanto corroborar si los métodos a emplear serán paramétricos o no paramétricos. Para esto se emplean diagramas de distribución de frecuencias y de cuantíles.
+Antes de la aplicación de la estadísitica inferencial, es necesario corrobar la distribución de cada una de las variables numéricas, esto con el objetivo de visualizar su comportamiento y por tanto corroborar si los métodos a emplear serán paramétricos o no paramétricos. Para esto se emplean los diagramas de distribución de frecuencia y de cuantíles.
 
 ```{r}
 #| label: Figura distribución de frecuencias
@@ -346,6 +346,24 @@ El digarama de cuantiles `qqplot`es una figura para un diagnóstico rápido que 
 ::: callout-note
 **QQ-plot:** si todos los puntos o la mayoría de ellos se ubican sobre la línea recta o cerca de ella, la muestra se encuentra donde debería estar para una distribución normal.
 :::
+
+## Aplicación de estadística inferencial
+
+En este caso se aplicará la estadística inferencial para determinar el efecto del tiempo en la concentración de los compuestos carotenoides y el comportamiento de las accesiones cuando son expuestas por varios días al método de conservación con ácido acético. En este caso se aplicará una prueba de Análisis de Varianza (ANOVA) de dos factores.
+
+::: callout-note
+**ANOVA:** es útil para analizar datos en un experimento cuando se evaluan cambios en una variable de respuesta relacionada con tratamientos particulares. Este test compara las varianzas entre los grupos y la varianza de los grupos comparados. 
+:::
+
+```{r}
+#| label: Análisis de varianza
+#| warning: false 
+#| message: false
+
+acar.aov <- aov (acar~acce*tiempo, data=vida.util)
+Anova (acar.aov, type="II")
+```
+
 
 ## Propiedades de los frutos de ají en fresco
 
@@ -437,4 +455,4 @@ grid.arrange(f7,f8,f9, nrow=1)
 
 # Conclusión
 
-Con los métodos empleados en estadística univariada se logró evaluar el comportamiento de las variables físicas y químicas de los frutos de Capsicum de acuerdo con las accesiones seleccionadas, identificando cuales presentan mayores valores para cada variable individual y variación entre los valores observados. Por otra parte, empleando la metodología multivariada PCA se logró identificar grupos de accesiones de capsicum que comparten similitudes en las características físicas y químicas de los frutos obtenidos.
+Con los métodos de estadística descriptiva e inferencial se pudo identificar el efecto del tiempo en la concentración de carotenoides en los frutos de ají cuando estos son sometidos a diferentes tiempos de conservación en ácido acético.
