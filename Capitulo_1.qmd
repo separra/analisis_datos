@@ -382,6 +382,8 @@ En los resutados de el ANOVA se presentan dos tipos de comparaciones: la varianz
 
 El resultado de la tabla ANOVA que permite aceptar alguna de las hipótesis planteadas en el análisis de los datos es la columna p-valor-Pr(>F). Si el resultado para el p-valor es inferior al nivel de significancia aceptado se rechaza la hipótesis nula, la cual indica que no existe diferencias entre los promedios de los grupos comparados. 
 
+En este caso los resultados obtenidos indican que los promedios obtenidos en la concentración de carotenoides para los diferentes tiempos de conservación difieren estadísticamente entre ellos. No es el caso cuando se compara entre las accesiones evaluadas.  
+
 ## Propiedades de los frutos de ají en fresco
 
 Los frutos de Capsicum fueron evaluados en fresco, antes de someter las muestras al proceso de conservación con ácido acético. Las variables evaluadas fueron el pH, los grados brix y el porcentaje de humedad. Incialmente, los datos en fresco de los frutos de ají fueron obtenidos filtrando desde la base de datos original, aquellos evaluados en el tiempo T0. Esto se realizó usando la función `filter()` de la librería `dplyr`.
@@ -468,6 +470,30 @@ f9 <- ggplot(proms.tiempo, aes(x=acce, y=hum_mean,
 
 grid.arrange(f7,f8,f9, nrow=1)
 
+```
+Los resultados de los frutos en fresco muestran que el promedio del pH en las accesiones es similar y la desviación estandar es pequeña. Por otra parte, el contenido de sólidos solubles es mayor en la accesión 149 y la desviación estandar pequeña. El tamaño de la desviación de estándar puede indicar la confiabilidad de la medición realizada. A mayor tamaño la confiabilidad de los valores observados disminuye.  
+
+```{r}
+#| label: Análisis de varianza en fresco
+#| warning: false 
+#| message: false
+
+brix.aov <- aov (brix~acce, data=tiempo.0)
+datatable (round(Anova (brix.aov, type="III"), 3))
+```
+
+```{r}
+#| label: post anova
+#| warning: false 
+#| message: false
+HSD.test (brix.aov, "acce", console=T)
+par(
+  mfrow=c(1,2),
+  mar=c(4,4,1,0)
+)
+plot (HSD.test (brix.aov, "acce"))
+plot (TukeyHSD (brix.aov, "acce"))
+dev.off()
 ```
 
 # Conclusión
