@@ -347,13 +347,23 @@ El digarama de cuantiles `qqplot`es una figura para un diagnóstico rápido que 
 **QQ-plot:** si todos los puntos o la mayoría de ellos se ubican sobre la línea recta o cerca de ella, la muestra se encuentra donde debería estar para una distribución normal.
 :::
 
-## Aplicación de estadística inferencial
+## Aplicación del análisis de varianza (ANOVA)
 
 En este caso se aplicará la estadística inferencial para determinar el efecto del tiempo en la concentración de los compuestos carotenoides y el comportamiento de las accesiones cuando son expuestas por varios días al método de conservación con ácido acético. En este caso se aplicará una prueba de Análisis de Varianza (ANOVA) de dos factores.
 
+Para la aplicación de la estadística inferencial se debe plantear una hipótesis, la cual describe el pensamiento o creencia acerca de la característica de una población. En la práctica se plantean dos hipótesis (nula y alternativa), cada una con una opción contrastante.   
+
 ::: callout-note
-**ANOVA:** es útil para analizar datos en un experimento cuando se evaluan cambios en una variable de respuesta relacionada con tratamientos particulares. Este test compara las varianzas entre los grupos y la varianza de los grupos comparados. 
+**ANOVA:** es útil para analizar datos en un experimento cuando se evaluan cambios en una variable de respuesta relacionada con tratamientos particulares. Este test compara las varianzas entre los grupos y la varianza de los grupos comparados.
 :::
+
+Para la aplicación de la ANOVA el set de datos debe cumplir los siguientes supuestos y condiciones:
+
+-   **Muestreo aleatorio**: los items del set de datos debieron ser seleccionados aleatoreamente de la población total.
+-   **Observaciones independientes**: los datos de una medición no deben influir sobre otra medición.
+-   **Homogeneidad en las varianzas**: la varianza dentro cada uno de los grupos que se compara debe ser la misma.
+-   **Normalidad de la variable**: el comportamiento de la variable debe ser normal o cercano a la normalidad. Esto se verifica con el histograma y el diagrama de cuantíles.
+-   **El tamaño de la muestra**: la cantidad de observaciones por grupo deben ser similar.
 
 ```{r}
 #| label: Análisis de varianza
@@ -361,9 +371,16 @@ En este caso se aplicará la estadística inferencial para determinar el efecto 
 #| message: false
 
 acar.aov <- aov (acar~acce*tiempo, data=vida.util)
-Anova (acar.aov, type="II")
-```
+datatable (round(Anova (acar.aov, type="III"), 3))
 
+```
+::: callout-note
+**Nivel de significancia**: para esta prueba el nivel de significancia se ajusta a 0.05, indicando que se espera cometer un error de falso positivo en el 5% de las ocasiones.
+:::
+
+En los resutados de el ANOVA se presentan dos tipos de comparaciones: la varianza **entre** los grupos comparados y la varianza **dentro** del grupo. 
+
+El resultado de la tabla ANOVA que permite aceptar alguna de las hipótesis planteadas en el análisis de los datos es la columna p-valor-Pr(>F). Si el resultado para el p-valor es inferior al nivel de significancia aceptado se rechaza la hipótesis nula, la cual indica que no existe diferencias entre los promedios de los grupos comparados. 
 
 ## Propiedades de los frutos de ají en fresco
 
